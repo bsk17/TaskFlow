@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using TaskFlow.Api.Data;
 using TaskFlow.Api.Helpers;
 using TaskFlow.Api.Mappings;
+using TaskFlow.Api.Models;
 using TaskFlow.Api.Repositories;
 using TaskFlow.Api.Services;
 
@@ -17,12 +18,15 @@ builder.Services.AddScoped<IUserServices, UserServices>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<IActivityLogRepository, ActivityLogRepository>();
+builder.Services.AddScoped<IActivityLogService, ActivityLogService>();
 builder.Services.AddScoped<JwtTokenGenerator>();
 builder.Services.AddAutoMapper(typeof(UserProfile));
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-
+builder.Services.Configure<MongoSettings>(builder.Configuration.GetSection("MongoSettings"));
+builder.Services.AddSingleton<MongoDbContext>();
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -41,7 +45,6 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]))
     };
 });
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {

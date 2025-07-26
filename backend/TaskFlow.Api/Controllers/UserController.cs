@@ -17,10 +17,16 @@ namespace TaskFlow.Api.Controllers
     {
         private readonly IUserServices _userServices;
         private readonly IUserRepository _repository;
-        public UserController(IUserServices userServices, IUserRepository userRepository)
+        private readonly IActivityLogService _activityLogService;
+        public UserController(
+                            IUserServices userServices,
+                            IUserRepository userRepository, 
+                            IActivityLogService activityLogService
+        )
         {
             _userServices = userServices;
             _repository = userRepository;
+            _activityLogService = activityLogService;
         }
 
         /// <summary>
@@ -63,6 +69,13 @@ namespace TaskFlow.Api.Controllers
             {
                 return BadRequest("User creation failed.");
             }
+            await _activityLogService.LogAsync(
+                user.Id,
+                "User Created",
+                "User",
+                user.Id.ToString(),
+                $"User {user.FullName} created successfully."
+            );
             return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
         }
 
@@ -81,6 +94,13 @@ namespace TaskFlow.Api.Controllers
             {
                 return NotFound();
             }
+            await _activityLogService.LogAsync(
+                id,
+                "User Profile Updated",
+                "User",
+                id.ToString(),
+                $"User {userUpdateDto.FullName} updated successfully."
+            );
             return NoContent();
         }
 
@@ -104,6 +124,13 @@ namespace TaskFlow.Api.Controllers
             {
                 return NotFound();
             }
+            await _activityLogService.LogAsync(
+                id,
+                "User Deleted",
+                "User",
+                id.ToString(),
+                $"User with ID {id} deleted successfully."
+            );
             return NoContent();
         }
 
@@ -122,7 +149,7 @@ namespace TaskFlow.Api.Controllers
             if (user == null) return Unauthorized("Invalid username or password.");
 
             var userEntity = await _repository.GetByUsernameAsync(loginDto.Username);
-            if (userEntity == null)
+            if (userEntity == null || !userEntity.IsActive)
             {
                 return Unauthorized("Invalid username or password.");
             }
@@ -189,6 +216,13 @@ namespace TaskFlow.Api.Controllers
             {
                 return NotFound("User not found.");
             }
+            await _activityLogService.LogAsync(
+                userId,
+                "Profile Updated",
+                "User",
+                userId.ToString(),
+                $"User {userProfileUpdateDto.FullName} updated their profile successfully."
+            );
             return NoContent();
         }
 
@@ -221,6 +255,13 @@ namespace TaskFlow.Api.Controllers
             {
                 return BadRequest("Password change failed.");
             }
+            await _activityLogService.LogAsync(
+                userId,
+                "Password Changed",
+                "User", 
+                userId.ToString(),
+                "User changed their password successfully."
+            );
             return NoContent();
         }
 
@@ -239,14 +280,75 @@ namespace TaskFlow.Api.Controllers
         [Authorize(Roles = "Admin")]
         [HttpGet("pagedusers")]
         public async Task<ActionResult<PagedResult<UserReadDto>>> PagedUsers(
-            [FromQuery] string search = "",
+            [FromQuery] string search = null,
+            [FromQuery] int? roleId = null,
+            [FromQuery] bool? isActive = null,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 20
         )
         {
-            var result = await _userServices.GetUsersPagedAsync(search, page, pageSize);
+            var result = await _userServices.GetUsersPagedAsync(search, roleId, isActive, page, pageSize);
             return Ok(result);
         }
 
+        /// <summary>
+        /// Change the role of a user
+        /// This endpoint allows an administrator to change the role of a user by their ID.
+        /// <remarks>       
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id}/role")]
+        public async Task<IActionResult> ChangeUserRole(int id, [FromBody] int newRoleId)
+        {
+            var updated = await _userServices.UpdateUserRoleAsync(id, newRoleId);
+            if (!updated)
+            {
+                return NotFound("User not found or role update failed.");
+            }
+            await _activityLogService.LogAsync(
+                id,
+                "User Role Changed",
+                "User",
+                id.ToString(),
+                $"User with ID {id} role changed to {newRoleId}."
+            );
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Activate a user by ID
+        /// This endpoint allows an administrator to activate a user by their ID.
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id}/activate")]
+        public async Task<IActionResult> ActivateUser(int id)
+        {
+            var updated = await _userServices.SetUserActiveStatusAsync(id, true);
+            if (!updated)
+            {
+                return NotFound("User not found or activation failed.");
+            }
+            await _activityLogService.LogAsync(
+                id,
+                "User Activated",
+                "User",
+                id.ToString(),
+                $"User with ID {id} activated successfully."
+            );
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Deactivate a user by ID
+        /// This endpoint allows an administrator to deactivate a user by their ID.
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id}/deactivate")]
+        public async Task<IActionResult> DeactivateUser(int id)
+        {
+            var updated = await _userServices.SetUserActiveStatusAsync(id, false);
+            if (!updated)
+            {
+                return NotFound("User not found or deactivation failed.");
+            }
+            return NoContent();
+        }
     }
 }

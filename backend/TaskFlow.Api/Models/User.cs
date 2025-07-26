@@ -24,6 +24,6 @@ namespace TaskFlow.Api.Models
         public int RoleId { get; set; }
         public Role Role { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public bool IsActive { get; set; }
+        public bool IsActive { get; set; } = true;
     }
 }

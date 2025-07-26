@@ -23,6 +23,6 @@ namespace TaskFlow.Api.Repositories
         Task<User> GetByUsernameAsync(string username);
         Task<bool> SaveChangesAsync();
         void Update(User user);
-        Task<(IEnumerable<User>, int)> GetPagedAsync(string search, int page, int pageSize); 
+        Task<(IEnumerable<User> Users, int)> GetPagedAsync(string search = null, int? roleId=null, bool? isActive=null, int page=1, int pageSize=20); 
     }
 }

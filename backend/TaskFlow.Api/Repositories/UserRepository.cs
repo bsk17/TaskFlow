@@ -158,13 +158,24 @@ namespace TaskFlow.Api.Repositories
         /// The total count of Users is also returned to allow for pagination in the UI.
         /// </remarks>
         /// </summary>
-        public async Task<(IEnumerable<User>, int)> GetPagedAsync(string search, int page, int pageSize)
+        public async Task<(IEnumerable<User>, int)> GetPagedAsync(string search=null, int? roleId=null, bool? isActive=null, int page=1, int pageSize=20)
         {
             var query = _context.Users.Include(u => u.Role).AsQueryable();
             if (!string.IsNullOrEmpty(search))
                 query = query.Where(u => u.Username.Contains(search) || u.Email.Contains(search));
+            
+            if (roleId.HasValue)
+                query = query.Where(u => u.RoleId == roleId.Value);
+
+            if (isActive.HasValue)
+                query = query.Where(u => u.IsActive == isActive.Value);
+            
             int total = await query.CountAsync();
-            var users = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            var users = await query
+                        .OrderBy(u => u.Username) // Order by Username or any other field as needed
+                        .Skip((page - 1) * pageSize)
+                        .Take(pageSize)
+                        .ToListAsync();
             return (users, total);
         }
     }

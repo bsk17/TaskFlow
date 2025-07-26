@@ -136,12 +136,6 @@ namespace TaskFlow.Api.Services
 
         /// <summary>
         /// Changes the password of a user
-        /// <remarks>
-        /// This method changes the password of a user based on the provided user ID and ChangePasswordDto.
-        /// It performs validation on the input data and may throw exceptions if the user does not exist or if the data is invalid.
-        /// If the password change is successful, it returns a boolean indicating success.
-        /// If the user is not found or if the old password does not match, it may return false or throw an exception depending on the implementation.
-        /// </remarks>
         /// <returns>
         /// A Task that represents the asynchronous operation, returning a boolean indicating whether the password change was successful.
         /// If the user with the specified ID does not exist or if the old password does not match, it may return false or throw an exception.
@@ -151,6 +145,17 @@ namespace TaskFlow.Api.Services
 
         /// <summary>
         /// Retrieves a paginated list of users based on search criteria            
-        Task<PagedResult<UserReadDto>> GetUsersPagedAsync(string search, int page, int pageSize);
+        Task<PagedResult<UserReadDto>> GetUsersPagedAsync(string search = null, int? roleId = null, bool? isActive = null, int page = 1, int pageSize = 20);
+
+        /// <summary>
+        /// Updates the role of a user
+        Task<bool> UpdateUserRoleAsync(int userId, int newRoleId);
+        
+        /// <summary>
+        /// Sets the active status of a user
+        /// <remarks>
+        /// This method sets the active status of a user based on the provided user ID and isActive flag.
+        /// It performs validation to ensure the user exists before attempting to update the status.
+        Task<bool> SetUserActiveStatusAsync(int userId, bool isActive);
     } 
 }

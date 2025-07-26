@@ -233,15 +233,51 @@ namespace TaskFlow.Api.Services
 
         /// <summary>
         /// Retrieves a paginated list of users based on search criteria.           
-        public async Task<PagedResult<UserReadDto>> GetUsersPagedAsync(string search, int page, int pageSize)
+        public async Task<PagedResult<UserReadDto>> GetUsersPagedAsync(string search = null, int? roleId = null, bool? isActive = null, int page = 1, int pageSize = 20)
         {
-            var (users, total) = await _userRepository.GetPagedAsync(search, page, pageSize);
+            var (users, total) = await _userRepository.GetPagedAsync(search, roleId, isActive, page, pageSize);
 
             return new PagedResult<UserReadDto>
             {
                 Items = _mapper.Map<IEnumerable<UserReadDto>>(users),
                 TotalCount = total
             };
+        }
+
+        /// <summary>
+        /// Updates the role of a user.
+        /// This method updates the user's role by changing the RoleId of the user entity.
+        /// It retrieves the user by their ID, updates the RoleId, and saves the changes.
+        /// If the user does not exist, it returns false.
+        public async Task<bool> UpdateUserRoleAsync(int userId, int newRoleId)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+            {
+                return false;
+            }
+
+            user.RoleId = newRoleId;
+            _userRepository.Update(user);
+            return await _userRepository.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Sets the active status of a user.
+        /// This method updates the IsActive property of the user entity.
+        /// It retrieves the user by their ID, updates the IsActive status, and saves the changes.
+        /// If the user does not exist, it returns false.
+        public async Task<bool> SetUserActiveStatusAsync(int userId, bool isActive)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+            {
+                return false;
+            }
+
+            user.IsActive = isActive;
+            _userRepository.Update(user);
+            return await _userRepository.SaveChangesAsync();
         }
     }
 }
