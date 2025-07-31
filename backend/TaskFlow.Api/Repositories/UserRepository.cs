@@ -158,18 +158,18 @@ namespace TaskFlow.Api.Repositories
         /// The total count of Users is also returned to allow for pagination in the UI.
         /// </remarks>
         /// </summary>
-        public async Task<(IEnumerable<User>, int)> GetPagedAsync(string search=null, int? roleId=null, bool? isActive=null, int page=1, int pageSize=20)
+        public async Task<(IEnumerable<User>, int)> GetPagedAsync(string search = null, int? roleId = null, bool? isActive = null, int page = 1, int pageSize = 20)
         {
             var query = _context.Users.Include(u => u.Role).AsQueryable();
             if (!string.IsNullOrEmpty(search))
                 query = query.Where(u => u.Username.Contains(search) || u.Email.Contains(search));
-            
+
             if (roleId.HasValue)
                 query = query.Where(u => u.RoleId == roleId.Value);
 
             if (isActive.HasValue)
                 query = query.Where(u => u.IsActive == isActive.Value);
-            
+
             int total = await query.CountAsync();
             var users = await query
                         .OrderBy(u => u.Username) // Order by Username or any other field as needed
@@ -177,6 +177,16 @@ namespace TaskFlow.Api.Repositories
                         .Take(pageSize)
                         .ToListAsync();
             return (users, total);
+        }
+        
+        /// <summary>
+        /// Retrieves a User by their email address.
+        /// This method asynchronously retrieves a User entity from the Users DbSet by its email address.
+        /// <returns>A Task that represents the asynchronous operation.
+        /// The task result contains the User entity if found, or null if not found.</returns
+        public async Task<User> GetByEmailAsync(string email)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
     }
 }

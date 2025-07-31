@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TaskFlow.Api.Data;
@@ -11,9 +12,11 @@ using TaskFlow.Api.Data;
 namespace TaskFlow.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250727190526_AddProjectAndTaskEntities")]
+    partial class AddProjectAndTaskEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,32 +24,6 @@ namespace TaskFlow.Api.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("TaskFlow.Api.Models.Notification", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Notifications");
-                });
 
             modelBuilder.Entity("TaskFlow.Api.Models.PasswordResetToken", b =>
                 {
@@ -154,13 +131,7 @@ namespace TaskFlow.Api.Migrations
                     b.Property<bool>("IsCompleted")
                         .HasColumnType("boolean");
 
-                    b.Property<int?>("ParentTaskId")
-                        .HasColumnType("integer");
-
                     b.Property<int>("ProjectId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Status")
                         .HasColumnType("integer");
 
                     b.Property<string>("Title")
@@ -172,8 +143,6 @@ namespace TaskFlow.Api.Migrations
                     b.HasIndex("AssignedToUserId");
 
                     b.HasIndex("CreatedByUserId");
-
-                    b.HasIndex("ParentTaskId");
 
                     b.HasIndex("ProjectId");
 
@@ -224,18 +193,14 @@ namespace TaskFlow.Api.Migrations
                 {
                     b.HasOne("TaskFlow.Api.Models.User", "AssignedToUser")
                         .WithMany()
-                        .HasForeignKey("AssignedToUserId");
+                        .HasForeignKey("AssignedToUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("TaskFlow.Api.Models.User", "CreatedByUser")
                         .WithMany()
                         .HasForeignKey("CreatedByUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("TaskFlow.Api.Models.TaskItem", "ParentTask")
-                        .WithMany("SubTasks")
-                        .HasForeignKey("ParentTaskId")
-                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("TaskFlow.Api.Models.Project", "Project")
                         .WithMany("Tasks")
@@ -246,8 +211,6 @@ namespace TaskFlow.Api.Migrations
                     b.Navigation("AssignedToUser");
 
                     b.Navigation("CreatedByUser");
-
-                    b.Navigation("ParentTask");
 
                     b.Navigation("Project");
                 });
@@ -271,11 +234,6 @@ namespace TaskFlow.Api.Migrations
             modelBuilder.Entity("TaskFlow.Api.Models.Role", b =>
                 {
                     b.Navigation("Users");
-                });
-
-            modelBuilder.Entity("TaskFlow.Api.Models.TaskItem", b =>
-                {
-                    b.Navigation("SubTasks");
                 });
 #pragma warning restore 612, 618
         }

@@ -13,11 +13,15 @@ namespace TaskFlow.Api.Services
     public class UserServices : IUserServices
     {
         private readonly IUserRepository _userRepository;
+        private readonly IPasswordResetTokenRepository _passwordResetTokenRepository;
+        private readonly IActivityLogService _activityLogService;
         private readonly IMapper _mapper;
-        public UserServices(IUserRepository userRepository, IMapper mapper)
+        public UserServices(IUserRepository userRepository, IPasswordResetTokenRepository passwordResetTokenRepository, IActivityLogService activityLogService, IMapper mapper)
         {
             _userRepository = userRepository;
             _mapper = mapper;
+            _passwordResetTokenRepository = passwordResetTokenRepository;
+            _activityLogService = activityLogService;
         }
 
         /// <summary>
@@ -25,19 +29,8 @@ namespace TaskFlow.Api.Services
         /// Maps the UserCreateDto to a User entity, hashes the password, and saves it to the database.
         /// After saving, retrieves the newly created user by its Id and maps it
         /// to a UserReadDto for return.
-        /// <remarks>
-        /// This method is used to create a new user in the system.
-        /// It takes a UserCreateDto object as input, which contains the necessary information to create a user.
-        /// The method uses AutoMapper to map the DTO to a User entity, hashes the password before saving,
-        /// and then saves the user to the database using the user repository.
-        /// After saving, it retrieves the user by its Id and maps it to a UserReadDto to return to the caller.
-        /// If the user creation is successful, it returns the UserReadDto; otherwise, it returns null.
-        /// </remarks>
         /// <returns>
         /// A UserReadDto representing the newly created user, or null if the creation failed.  
-        /// </summary>
-        /// <param name="userCreateDto"></param>
-        /// <returns></returns>
         public async Task<UserReadDto> CreateUserAsync(UserCreateDto userCreateDto)
         {
             var user = _mapper.Map<User>(userCreateDto);
@@ -52,18 +45,9 @@ namespace TaskFlow.Api.Services
         /// Deletes a user by its Id.
         /// Retrieves the user from the repository, deletes it, and saves the changes.
         /// If the user does not exist, it returns false.
-        /// <remarks>
-        /// This method is used to delete a user from the system by its Id.
-        /// It first retrieves the user from the repository using the provided Id.
-        /// If the user exists, it deletes the user and saves the changes to the database.
-        /// If the user does not exist, it returns false.
-        /// </remarks>
         /// <returns>
         /// A boolean indicating whether the deletion was successful.
         /// If the user was found and deleted, it returns true; otherwise, it returns false
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
         public async Task<bool> DeleteUserAsync(int id)
         {
             var user = await _userRepository.GetByIdAsync(id);
@@ -80,17 +64,8 @@ namespace TaskFlow.Api.Services
         /// Retrieves a user by its Id.
         /// Maps the retrieved User entity to a UserReadDto for return.
         /// If the user does not exist, it returns null.
-        /// <remarks>
-        /// This method is used to retrieve a user from the system by its Id.
-        /// It uses the user repository to get the user entity from the database.
-        /// If the user exists, it maps the User entity to a UserReadDto using AutoMapper.
-        /// If the user does not exist, it returns null.
-        /// </remarks>
         /// <returns>
         /// A UserReadDto representing the user with the specified Id, or null if the user does not exist.      
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
         public async Task<UserReadDto> GetUserAsync(int id)
         {
             var user = await _userRepository.GetByIdAsync(id);
@@ -100,17 +75,10 @@ namespace TaskFlow.Api.Services
         /// <summary>
         /// Retrieves all users from the system.
         /// Maps the collection of User entities to a collection of UserReadDto for return.
-        /// <remarks>
-        /// This method is used to retrieve all users from the system.
-        /// It uses the user repository to get all User entities from the database.
-        /// The retrieved User entities are then mapped to a collection of UserReadDto using AutoMapper.
-        /// </remarks>
         /// <returns>
         /// A collection of UserReadDto representing all users in the system.
         /// If there are no users, it returns an empty collection.
         /// </returns>  
-        /// </summary>
-        /// <returns></returns>
         public async Task<IEnumerable<UserReadDto>> GetUsersAsync()
         {
             var users = await _userRepository.GetAllAsync();
@@ -122,17 +90,8 @@ namespace TaskFlow.Api.Services
         /// Maps the UserUpdateDto to the existing User entity, hashes the password if it has been updated,
         /// and saves the changes to the database.
         /// If the user does not exist, it returns false.
-        /// <remarks>
-        /// This method is used to update an existing user in the system by its Id.
-        /// It retrieves the user from the repository using the provided Id.
-        /// If the user exists, it maps the UserUpdateDto to the existing User entity.
-        /// If the password has been updated, it hashes the new password before saving.
-        /// After updating the user, it saves the changes to the database.
-        /// If the user does not exist, it returns false.
-        /// </remarks>
         /// <returns>
         /// A boolean indicating whether the update was successful.             
-        /// </summary>
         public async Task<bool> UpdateUserAsync(int id, UserUpdateDto userUpdateDto)
         {
             var user = await _userRepository.GetByIdAsync(id);
@@ -162,22 +121,12 @@ namespace TaskFlow.Api.Services
         /// A boolean indicating whether the plain password matches the hashed password.
         /// Returns true if they match, otherwise false.
         /// </returns>
-        /// <remarks>
-        /// This method uses BCrypt to verify the plain password against the hashed password.
-        /// It is typically used during user authentication to check if the provided password is correct.
-        /// </remarks>
         public bool VerifyPassword(string plainPassword, string hashedPassword) => BCrypt.Net.BCrypt.Verify(plainPassword, hashedPassword);
 
         /// <summary>
         /// Retrieves a user by username.
         /// Maps the retrieved User entity to a UserReadDto for return.
         /// If the user does not exist, it returns null.
-        /// <remarks>
-        /// This method is used to retrieve a user from the system by their username.
-        /// It uses the user repository to get the User entity from the database based on the provided username.
-        /// If the user exists, it maps the User entity to a UserReadDto using AutoMapper.
-        /// If the user does not exist, it returns null.
-        /// </remarks>
         /// <returns>
         /// A UserReadDto representing the user with the specified username, or null if the user does not exist.
         /// </returns>
@@ -192,13 +141,6 @@ namespace TaskFlow.Api.Services
         /// This method updates the user's profile information such as email and full name.
         /// It retrieves the user by their ID, updates the relevant fields, and saves the changes.
         /// If the user does not exist, it returns false.
-        /// <remarks>
-        /// This method is used to update the user's profile information.
-        /// It takes a UserProfileUpdateDto object as input, which contains the new email and       
-        /// </summary>
-        /// <param name="userId"></param>
-        /// <param name="userProfileUpdateDto"></param>
-        /// <returns></returns>
         public async Task<bool> UpdateProfileAsync(int userId, UserProfileUpdateDto userProfileUpdateDto)
         {
             var user = await _userRepository.GetByIdAsync(userId);
@@ -278,6 +220,83 @@ namespace TaskFlow.Api.Services
             user.IsActive = isActive;
             _userRepository.Update(user);
             return await _userRepository.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Initiates a password reset process for a user by generating a reset token.
+        /// This method retrieves the user by their email, generates a unique token, and saves it
+        /// in the PasswordResetToken repository. It also logs the activity of the password reset request.
+        /// If the user does not exist, it throws a KeyNotFoundException.
+        /// </summary>
+        /// <param name="email">The email of the user requesting the password reset.</param>
+        /// <returns>
+        /// A Task representing the asynchronous operation.
+        /// </returns>
+        public async Task InitiatePasswordResetAsync(string email)
+        {
+            var user = await _userRepository.GetByEmailAsync(email);
+            if (user == null)
+            {
+                throw new KeyNotFoundException("User not found");
+            }
+
+            var token = Guid.NewGuid().ToString("N");
+            var passwordResetToken = new PasswordResetToken
+            {
+                UserId = user.Id,
+                Token = token,
+                ExpiresAt = DateTime.UtcNow.AddHours(1),
+                Used = false
+            };
+
+            await _passwordResetTokenRepository.AddASync(passwordResetToken);
+            await _passwordResetTokenRepository.SaveChangesAsync();
+
+            await _activityLogService.LogAsync(user.Id, "Password Reset Requested", "User", user.Id.ToString());
+
+            // Here you would typically send the token to the user's email
+            // For example: EmailService.SendPasswordResetEmail(user.Email, token);
+        }
+
+        /// <summary>
+        /// Resets the user's password using a password reset token.
+        /// This method retrieves the password reset token from the repository, checks if it is valid,
+        /// and if so, updates the user's password with the new password provided.
+        /// It also marks the token as used and logs the activity of the password reset.
+        /// If the token is invalid or expired, it returns false.
+        /// </summary>
+        /// <param name="token">The password reset token provided by the user.</param>
+        /// <param name="newPassword">The new password to set for the user.</param>
+        /// <returns>
+        /// A boolean indicating whether the password reset was successful.
+        /// Returns true if the password was reset successfully, otherwise false.
+        /// </returns>
+        public async Task<bool> ResetPasswordAsync(string token, string newPassword)
+        {
+            var reset = await _passwordResetTokenRepository.GetByTokenAsync(token);
+            if (reset == null || reset.Used || reset.ExpiresAt < DateTime.UtcNow)
+            {
+                return false; // Token is invalid or expired
+            }
+
+            var user = await _userRepository.GetByIdAsync(reset.UserId);
+            if (user == null)
+            {
+                return false; // User not found
+            }
+
+            user.PasswordHash = HashPassword(newPassword);
+            reset.Used = true;
+
+            _userRepository.Update(user);
+            _passwordResetTokenRepository.Update(reset);
+
+            await _userRepository.SaveChangesAsync();
+            await _passwordResetTokenRepository.SaveChangesAsync();
+
+            await _activityLogService.LogAsync(user.Id, "Password Reset via Token Successful", "User", user.Id.ToString());
+
+            return true; // Password reset successful
         }
     }
 }

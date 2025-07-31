@@ -71,62 +71,24 @@ namespace TaskFlow.Api.Services
 
         /// <summary>
         /// Updates an existing user
-        /// <remarks>
-        /// This method updates an existing user in the database based on the provided user ID and UserUpdateDto.
-        /// It performs validation on the input data and may throw exceptions if the user does not exist or if the data is invalid.
-        /// If the update is successful, it returns a boolean indicating success.
-        /// If the user is not found, it may return false or throw an exception depending on the implementation.
-        /// </remarks>
         /// <returns>
         /// A Task that represents the asynchronous operation, returning a boolean indicating whether the update was successful.
         /// If the user with the specified ID does not exist, it may return false or throw an exception.
         /// This method is typically used to modify user details such as username, email, password, and role.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="userUpdateDto"></param>
-        /// <returns></returns>
         Task<bool> UpdateUserAsync(int id, UserUpdateDto userUpdateDto);
 
         /// <summary>
         /// Deletes a user by ID
-        /// <remarks>
-        /// This method deletes a user from the database based on the provided user ID.
-        /// It performs validation to ensure the user exists before attempting to delete.
-        /// If the deletion is successful, it returns a boolean indicating success.
-        /// If the user is not found, it may return false or throw an exception depending on the implementation.
-        /// </remarks>
         /// <returns>
         /// A Task that represents the asynchronous operation, returning a boolean indicating whether the deletion was successful.
         /// If the user with the specified ID does not exist, it may return false or throw an exception.
         /// This method is typically used to remove a user from the system, ensuring that all related data is handled appropriately.
         /// </returns>
-        /// <exception cref="KeyNotFoundException">Thrown if the user with the specified ID does not exist.</exception>
-        /// <exception cref="ArgumentException">Thrown if the provided ID is invalid.</exception>
-        /// <exception cref="Exception">Thrown if there is an error deleting the user from the database.
-        /// This could include issues such as database connectivity problems or constraints preventing deletion.
-        /// </exception>
-        /// <remarks>
-        /// This method is typically used in administrative functions to manage user accounts.
-        /// It ensures that users can be removed from the system when they are no longer needed or when they violate terms of service.
-        /// It is important to handle related data and ensure that the deletion does not leave orphaned records in the database.
-        /// </remarks>
-        /// <returns>
-        /// A Task that represents the asynchronous operation, returning a boolean indicating whether the deletion was successful.
-        /// If the user with the specified ID does not exist, it may return false or throw an exception.
-        /// This method is typically used to remove a user from the system, ensuring that all related data is handled appropriately.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
+    
         Task<bool> DeleteUserAsync(int id);
 
         /// <summary>
         /// Updates the profile of a user
-        /// <remarks>
-        /// This method updates the profile information of a user based on the provided user ID and UserProfileUpdateDto.
-        /// It performs validation on the input data and may throw exceptions if the user does not exist or if the data is invalid.
-        /// If the update is successful, it returns a boolean indicating success.
-        /// If the user is not found, it may return false or throw an exception depending on the implementation.
-        /// </remarks>
         /// <returns>
         /// A Task that represents the asynchronous operation, returning a boolean indicating whether the profile update was successful.
         /// If the user with the specified ID does not exist, it may return false or throw an exception.
@@ -150,12 +112,17 @@ namespace TaskFlow.Api.Services
         /// <summary>
         /// Updates the role of a user
         Task<bool> UpdateUserRoleAsync(int userId, int newRoleId);
-        
+
         /// <summary>
         /// Sets the active status of a user
-        /// <remarks>
-        /// This method sets the active status of a user based on the provided user ID and isActive flag.
-        /// It performs validation to ensure the user exists before attempting to update the status.
         Task<bool> SetUserActiveStatusAsync(int userId, bool isActive);
+
+        /// <summary>
+        /// Initiates a password reset process for a user
+        Task InitiatePasswordResetAsync(string email);
+
+        /// <summary>
+        /// Resets the password for a user using a token
+        Task<bool> ResetPasswordAsync(string token, string newPassword);
     } 
 }

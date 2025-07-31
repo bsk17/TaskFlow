@@ -20,7 +20,7 @@ namespace TaskFlow.Api.Controllers
         private readonly IActivityLogService _activityLogService;
         public UserController(
                             IUserServices userServices,
-                            IUserRepository userRepository, 
+                            IUserRepository userRepository,
                             IActivityLogService activityLogService
         )
         {
@@ -258,7 +258,7 @@ namespace TaskFlow.Api.Controllers
             await _activityLogService.LogAsync(
                 userId,
                 "Password Changed",
-                "User", 
+                "User",
                 userId.ToString(),
                 "User changed their password successfully."
             );
@@ -349,6 +349,30 @@ namespace TaskFlow.Api.Controllers
                 return NotFound("User not found or deactivation failed.");
             }
             return NoContent();
+        }
+
+        /// <summary>
+        /// Initiate a password reset for a user
+        /// This endpoint allows a user to request a password reset by providing their email address.
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto forgotPasswordDto)
+        {
+            await _userServices.InitiatePasswordResetAsync(forgotPasswordDto.Email);
+            return Ok("If the email exists, a password reset link has been sent.");
+        }
+
+        /// <summary>
+        /// Reset a user's password using a token
+        /// This endpoint allows a user to reset their password by providing a valid token and a new password.
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
+        {
+            var result = await _userServices.ResetPasswordAsync(resetPasswordDto.Token, resetPasswordDto.NewPassword);
+            if (!result)
+            {
+                return BadRequest("Invalid token or password reset failed.");
+            }
+            return Ok("Password reset successful.");
         }
     }
 }
