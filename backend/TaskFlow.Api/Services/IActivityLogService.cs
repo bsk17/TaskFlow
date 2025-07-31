@@ -1,3 +1,4 @@
+using TaskFlow.Api.DTOs;
 using TaskFlow.Api.Models;
 using TaskFlow.Api.PagedResult;
 
@@ -17,6 +18,6 @@ namespace TaskFlow.Api.Services
         /// <summary>
         /// Retrieves a paginated list of activity logs based on the specified filters.
         /// </summary>
-        Task<PagedResult<ActivityLog>> GetPagedAsync(string entityType = null, string entityId = null, int? userId = null, string action = null, int page = 1, int pageSize = 50);
+        Task<PagedResult<ActivityLogReadDto>> GetPagedAsync(string entityType = null, string entityId = null, int? userId = null, string action = null, int page = 1, int pageSize = 50);
     }
 }

@@ -14,6 +14,19 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
+
+    options.AddPolicy("ProjectCreatorOrAdmin", policy =>
+        policy.RequireAssertion(context =>
+            context.User.IsInRole("Admin") ||
+            context.User.HasClaim("IsProjectCreator", "true")));
+
+    options.AddPolicy("CanManageTasks", policy =>
+        policy.RequireRole("Admin", "ProjectManager"));
+});
+
 
 builder.Services.AddScoped<IUserServices, UserServices>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -28,6 +41,9 @@ builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<ITaskCommentRepository, TaskCommentRepository>();
+builder.Services.AddScoped<ITaskCommentService, TaskCommentService>();
+builder.Services.AddScoped<IActivityLogService, ActivityLogService>();
 
 builder.Services.AddScoped<JwtTokenGenerator>();
 
@@ -36,6 +52,8 @@ builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddAutoMapper(typeof(TaskProfile));
 builder.Services.AddAutoMapper(typeof(ProjectProfile));
 builder.Services.AddAutoMapper(typeof(NotificationProfile));
+builder.Services.AddAutoMapper(typeof(TaskCommentProfile));
+builder.Services.AddAutoMapper(typeof(ActivityLogProfile));
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));

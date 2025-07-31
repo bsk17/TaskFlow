@@ -127,6 +127,36 @@ namespace TaskFlow.Api.Migrations
                         });
                 });
 
+            modelBuilder.Entity("TaskFlow.Api.Models.TaskComment", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("id"));
+
+                    b.Property<int>("AuthorId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("TaskId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("id");
+
+                    b.HasIndex("AuthorId");
+
+                    b.HasIndex("TaskId");
+
+                    b.ToTable("TaskComments");
+                });
+
             modelBuilder.Entity("TaskFlow.Api.Models.TaskItem", b =>
                 {
                     b.Property<int>("Id")
@@ -218,6 +248,25 @@ namespace TaskFlow.Api.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("TaskFlow.Api.Models.TaskComment", b =>
+                {
+                    b.HasOne("TaskFlow.Api.Models.User", "Author")
+                        .WithMany()
+                        .HasForeignKey("AuthorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TaskFlow.Api.Models.TaskItem", "Task")
+                        .WithMany()
+                        .HasForeignKey("TaskId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Author");
+
+                    b.Navigation("Task");
                 });
 
             modelBuilder.Entity("TaskFlow.Api.Models.TaskItem", b =>

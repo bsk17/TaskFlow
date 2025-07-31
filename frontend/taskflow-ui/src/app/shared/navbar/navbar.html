@@ -1,0 +1,25 @@
+<nav class="navbar navbar-expand navbar-light bg-light">
+  <a class="navbar-brand" href="#">TaskFlow</a>
+  <div class="collapse navbar-collapse">
+    <ul class="navbar-nav me-auto">
+      <li *ngIf="auth.isLoggedIn()" class="nav-item">
+        <a class="nav-link" routerLink="/dashboard">Dashboard</a>
+      </li>
+      <li *ngIf="auth.getUserRole() === 'Admin'" class="nav-item">
+        <a class="nav-link" routerLink="/admin/users">Users</a>
+      </li>
+      <!-- Add more role-based links here -->
+    </ul>
+    <ul class="navbar-nav">
+      <li *ngIf="auth.isLoggedIn()" class="nav-item">
+        <span class="nav-link">Hello, {{auth.getUsername()}}</span>
+      </li>
+      <li *ngIf="auth.isLoggedIn()" class="nav-item">
+        <a class="nav-link" (click)="logout()" href="#">Logout</a>
+      </li>
+      <li *ngIf="!auth.isLoggedIn()" class="nav-item">
+        <a class="nav-link" routerLink="/login">Login</a>
+      </li>
+    </ul>
+  </div>
+</nav>

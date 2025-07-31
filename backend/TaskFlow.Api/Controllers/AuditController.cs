@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TaskFlow.Api.DTOs;
 using TaskFlow.Api.Models;
 using TaskFlow.Api.PagedResult;
 using TaskFlow.Api.Services;
@@ -26,7 +27,7 @@ public class AuditController : ControllerBase
     /// <returns>A paginated result containing the activity logs.</returns> 
     [Authorize(Roles = "Admin")]
     [HttpGet("audit-logs")]
-    public async Task<ActionResult<PagedResult<ActivityLog>>> GetAuditLogs(
+    public async Task<ActionResult<PagedResult<ActivityLogReadDto>>> GetAuditLogs(
         [FromQuery] string entityType = null,
         [FromQuery] string entityId = null,
         [FromQuery] int? userId = null,

@@ -32,6 +32,7 @@ public class ProjectController : ControllerBase
         return Ok(projects);
     }
 
+    [Authorize(Roles = "Admin,ProjectManager")]
     [HttpPost]
     public async Task<ActionResult<ProjectReadDto>> CreateProject(ProjectCreateDto dto)
     {
@@ -47,6 +48,7 @@ public class ProjectController : ControllerBase
         return NoContent();
     }
 
+    [Authorize(Policy = "ProjectCreatorOrAdmin")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteProject(int id)
     {

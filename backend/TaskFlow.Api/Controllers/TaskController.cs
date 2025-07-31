@@ -31,6 +31,7 @@ public class TaskController : ControllerBase
         return Ok(tasks);
     }
 
+    [Authorize(Policy = "CanManageTasks")]
     [HttpPost]
     public async Task<ActionResult<TaskReadDto>> CreateTask(TaskCreateDto dto)
     {
@@ -44,6 +45,7 @@ public class TaskController : ControllerBase
         return CreatedAtAction(nameof(GetTask), new { id = task.Id }, task);
     }
 
+    [Authorize(Policy = "CanManageTasks")]
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateTask(int id, TaskUpdateDto dto)
     {

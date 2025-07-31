@@ -29,4 +29,12 @@ public class NotificationController : ControllerBase
         if (!updated) return NotFound();
         return NoContent();
     }
+
+    [HttpGet("unread-count")]
+    public async Task<ActionResult<int>> GetUnreadCount()
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var notifs = await _notificationService.GetNotificationsAsync(userId, unreadOnly: true);
+        return Ok(notifs.Count());
+    }
 }

@@ -1,4 +1,5 @@
 
+using MongoDB.Bson;
 using MongoDB.Driver;
 using TaskFlow.Api.Data;
 using TaskFlow.Api.Models;
@@ -37,32 +38,32 @@ namespace TaskFlow.Api.Repositories
             int pageSize = 50
         )
         {
-            var filterBuilder = Builders<ActivityLog>.Filter;
-            var filter = filterBuilder.Empty;
-            if (!string.IsNullOrEmpty(entityType))
-            {
-                filter &= filterBuilder.Eq(log => log.EntityType, entityType);
-            }
-            if (!string.IsNullOrEmpty(entityId))
-            {
-                filter &= filterBuilder.Eq(log => log.EntityId, entityId);
-            }
+            var filter = Builders<ActivityLog>.Filter.Empty;
+
+            if (!string.IsNullOrWhiteSpace(entityType))
+                filter &= Builders<ActivityLog>.Filter.Eq(x => x.EntityType, entityType);
+
+            if (!string.IsNullOrWhiteSpace(entityId))
+                filter &= Builders<ActivityLog>.Filter.Eq(x => x.EntityId, entityId);
+
+            if (!string.IsNullOrWhiteSpace(action))
+                filter &= Builders<ActivityLog>.Filter.Regex(x => x.Action, new BsonRegularExpression(action, "i"));
+
             if (userId.HasValue)
-            {
-                filter &= filterBuilder.Eq(log => log.UserId, userId.Value);
-            }
-            if (!string.IsNullOrEmpty(action))
-            {
-                filter &= filterBuilder.Regex(log => log.Action, new MongoDB.Bson.BsonRegularExpression(action, "i"));
-            }
-            var totalCount = await _context.ActivityLogs.CountDocumentsAsync(filter);
-            var logs = await _context.ActivityLogs
+                filter &= Builders<ActivityLog>.Filter.Eq(x => x.UserId, userId.Value);
+
+            var collection = _context.ActivityLogs;
+
+            var total = await collection.CountDocumentsAsync(filter);
+
+            var logs = await collection
                 .Find(filter)
+                .SortByDescending(l => l.Timestamp)
                 .Skip((page - 1) * pageSize)
                 .Limit(pageSize)
                 .ToListAsync();
 
-            return (logs, totalCount);
+            return (logs, total);
         }
     }
 }

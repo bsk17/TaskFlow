@@ -1,4 +1,6 @@
 
+using AutoMapper;
+using TaskFlow.Api.DTOs;
 using TaskFlow.Api.Models;
 using TaskFlow.Api.PagedResult;
 using TaskFlow.Api.Repositories;
@@ -8,9 +10,11 @@ namespace TaskFlow.Api.Services
     public class ActivityLogService : IActivityLogService
     {
         private readonly IActivityLogRepository _activityLogRepository;
-        public ActivityLogService(IActivityLogRepository activityLogRepository)
+        private readonly IMapper _mapper;
+        public ActivityLogService(IActivityLogRepository activityLogRepository, IMapper mapper)
         {
             _activityLogRepository = activityLogRepository;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -46,7 +50,7 @@ namespace TaskFlow.Api.Services
         /// <param name="page">The page number for pagination.</param>
         /// <param name="pageSize">The number of logs per page.</param>
         /// <returns>A paginated result containing the activity logs.</returns>
-        public async Task<PagedResult<ActivityLog>> GetPagedAsync(
+        public async Task<PagedResult<ActivityLogReadDto>> GetPagedAsync(
         string entityType = null,
         string entityId = null,
         int? userId = null,
@@ -54,12 +58,12 @@ namespace TaskFlow.Api.Services
         int page = 1,
         int pageSize = 50)
         {
-            var (logs, totalCount) = await _activityLogRepository.GetPagedAsync(entityType, entityId, userId, action, page, pageSize);
+            var (logs, total) = await _activityLogRepository.GetPagedAsync(entityType, entityId, userId, action, page, pageSize);
 
-            return new PagedResult<ActivityLog>
+            return new PagedResult<ActivityLogReadDto>
             {
-                Items = logs,
-                TotalCount = (int)totalCount
+                Items = _mapper.Map<IEnumerable<ActivityLogReadDto>>(logs),
+                TotalCount = (int)total
             };
         }
     }

@@ -52,6 +52,8 @@ namespace TaskFlow.Api.Data
         public DbSet<TaskItem> TaskItems { get; set; }
 
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<TaskComment> TaskComments { get; set; }
+
 
         /// <summary>
         /// Configures the model for the database context.
